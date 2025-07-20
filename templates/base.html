@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{{ url_for('static', filename='images/TitleIMG.png') }}" type="image/png">
+
+  <title>{% block title %}ASD Project{% endblock %}</title>
+
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.legacy.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f0f4f8;
+    }
+    header {
+      background: linear-gradient(to right, #4f46e5, #ec4899);
+    }
+    footer {
+    background: linear-gradient(to right, #2575fc, #ff7eb9); /* Blue to Pink */
+    color: #ccc; /* Light gray text color */
+}
+
+
+
+  .nav-hover {
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+
+  .nav-hover:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    text-decoration: none;
+    transform: scale(1.05);
+  }
+
+  /* Active link style if needed */
+  .nav-hover.active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Adjust font slightly for better look */
+  .nav-link {
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+    {% block css %}
+    {% endblock %}
+
+  
+</style>
+  {% block head %}
+    {% endblock %}
+</head>
+<body class="flex flex-col min-h-screen">
+
+<header class="p-3 text-white" style="background: linear-gradient(135deg, #4f46e5, #ec4899);">
+  <div class="container d-flex flex-wrap justify-content-between align-items-center">
+    <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+      <span class="fs-4 fw-bold">ASD Project</span>
+    </a>
+
+    <ul class="nav">
+      <li class="nav-item">
+        <a href="/" class="nav-link text-white nav-hover">Home</a>
+      </li>
+      <li class="nav-item">
+        <a href="/about" class="nav-link text-white nav-hover">About</a>
+      </li>
+      <li class="nav-item">
+        <a href="/explore" class="nav-link text-white nav-hover">Explore ASD</a>
+      </li>
+      <li class="nav-item">
+        <a href="/research" class="nav-link text-white nav-hover">Research</a>
+      </li>
+      <li class="nav-item">
+        <a href="/dashboard" class="nav-link text-white nav-hover">Dashboard</a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+
+
+
+<main >
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-10">
+    <div class="container mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <!-- Logo and Tagline -->
+            <div class="mb-6 md:mb-0 flex items-center space-x-3">
+                <i class="fas fa-brain text-3xl text-white"></i>
+                <div>
+                    <h2 class="text-2xl font-semibold">Autism Spectrum Screening</h2>
+                    <p class="text-sm text-gray-200">Early detection for better outcomes</p>
+                </div>
+            </div>
+
+            <!-- Social Icons -->
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-white text-gray-300 transition-transform transform hover:scale-110">
+                    <i class="fab fa-facebook-f text-xl"></i>
+                </a>
+                <a href="#" class="hover:text-white text-gray-300 transition-transform transform hover:scale-110">
+                    <i class="fab fa-twitter text-xl"></i>
+                </a>
+                <a href="#" class="hover:text-white text-gray-300 transition-transform transform hover:scale-110">
+                    <i class="fas fa-envelope text-xl"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Divider & Copyright -->
+        <div class="mt-8 border-t border-purple-400 pt-4 text-center">
+            <p class="text-sm text-gray-300 font-medium">
+                © 2025 <span class="font-semibold">Autism Screening Tool</span>. All Rights Reserved.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

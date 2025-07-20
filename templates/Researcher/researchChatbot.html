@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+{% block title %}Gene Chatbot{% endblock %}
+
+{% block css %}
+:root {
+    --primary-color: #6b46c1;
+    --primary-dark: #553c9a;
+    --sidebar-bg: #4a3b76;
+    --main-bg: #ebf8ff;
+    --message-user-bg: #a3bffa;
+    --message-assistant-bg: #e9d8fd;
+    --text-color: #2d3748;
+    --text-secondary: #4a5568;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --border-radius: 12px;
+}
+
+/* Maintenance banner styles */
+.maintenance-banner {
+    background-color: #6b46c1;
+    color: white;
+    padding: 12px 0;
+    font-weight: 600;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.maintenance-marquee {
+    font-size: 1rem;
+    white-space: nowrap;
+    animation: marquee 25s linear infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.gene-chatbot * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.gene-chatbot {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--main-bg);
+    min-height: 100vh;
+    display: flex;
+    width: 100%;
+}
+
+.gene-chatbot .sidebar {
+    width: 280px;
+    background-color: var(--sidebar-bg);
+    padding: 1.5rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.gene-chatbot .sidebar-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gene-chatbot .sidebar h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gene-chatbot .sidebar h2 i {
+    font-size: 1.3rem;
+}
+
+.gene-chatbot .sidebar-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.gene-chatbot .sidebar label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gene-chatbot .sidebar input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    color: white;
+    outline: none;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    height: auto;
+}
+
+.gene-chatbot .sidebar input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.gene-chatbot .sidebar input:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.3);
+}
+
+.gene-chatbot .sidebar button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.gene-chatbot .sidebar button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.gene-chatbot .sidebar button:active {
+    transform: translateY(0);
+}
+
+.gene-chatbot .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.gene-chatbot .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: white;
+}
+
+.gene-chatbot .message {
+    max-width: 75%;
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius);
+    line-height: 1.5;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    word-wrap: break-word;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.gene-chatbot .user {
+    background-color: var(--message-user-bg);
+    color: var(--text-color);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.gene-chatbot .assistant {
+    background-color: var(--message-assistant-bg);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.gene-chatbot .message-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.gene-chatbot .input-container {
+    background-color: white;
+    padding: 1.25rem;
+    border-top: 1px solid var(--input-border);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.gene-chatbot .input-container input[type="text"] {
+    flex: 1;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    padding: 0.875rem 1rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+}
+
+.gene-chatbot .input-container input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.2);
+    outline: none;
+}
+
+.gene-chatbot .input-container button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gene-chatbot .input-container button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.gene-chatbot .input-container button:active {
+    transform: translateY(0);
+}
+
+.gene-chatbot .input-container button:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Scrollbar styling */
+.gene-chatbot .chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.gene-chatbot .chat-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.gene-chatbot .chat-container::-webkit-scrollbar-thumb {
+    background: #c7d2fe;
+    border-radius: 4px;
+}
+
+.gene-chatbot .chat-container::-webkit-scrollbar-thumb:hover {
+    background: #a5b4fc;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .gene-chatbot {
+        flex-direction: column;
+    }
+    
+    .gene-chatbot .sidebar {
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .gene-chatbot .message {
+        max-width: 85%;
+    }
+    
+    .maintenance-banner {
+        font-size: 0.9rem;
+        padding: 10px 0;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<!-- Maintenance Banner -->
+<div class="maintenance-banner">
+    <div class="maintenance-marquee">
+        <i class="fas fa-tools"></i>
+        ⚠️ Service is currently unavailable due to maintenance. We apologize for the inconvenience. ⚠️
+        <i class="fas fa-tools"></i>
+    </div>
+</div>
+
+<div class="gene-chatbot">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>
+                <i class="fas fa-dna"></i>
+                Gene Chatbot
+            </h2>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+                Ask questions about specific genes and their functions
+            </p>
+        </div>
+        
+        <div class="sidebar-input-group">
+            <label for="gene-input">
+                <i class="fas fa-search"></i>
+                Enter Gene Name
+            </label>
+            <input type="text" id="gene-input" placeholder="e.g. BRCA1, TP53, EGFR">
+            <button id="set-gene-btn">
+                <i class="fas fa-check-circle"></i>
+                Set Gene
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="chat-container" class="chat-container">
+            <div class="message assistant">
+                <i class="fas fa-robot message-icon"></i>
+                <div>
+                    <p>Welcome to Gene Chatbot! <i class="fas fa-dna"></i></p>
+                    <p>Please enter a gene name to start asking questions about its functions, mutations, and related research.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Ask about the gene..." disabled>
+            <button id="send-btn" disabled>
+                <span>Send</span>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const geneInput = document.getElementById('gene-input');
+        const setGeneBtn = document.getElementById('set-gene-btn');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer = document.getElementById('chat-container');
+
+        // Handle Enter key for both inputs
+        geneInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') setGene();
+        });
+        
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        setGeneBtn.addEventListener('click', setGene);
+        sendBtn.addEventListener('click', sendMessage);
+
+        function setGene() {
+            const gene = geneInput.value.trim();
+            if (!gene) return;
+            
+            // Show loading state
+            setGeneBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            setGeneBtn.disabled = true;
+            
+            fetch('/change_gene', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gene: gene })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    addMessage('assistant', `Now discussing gene: <strong>${data.gene}</strong>. What would you like to know about it?`);
+                    userInput.focus();
+                }
+            })
+            .finally(() => {
+                setGeneBtn.innerHTML = '<i class="fas fa-check-circle"></i> Set Gene';
+                setGeneBtn.disabled = false;
+            });
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            addMessage('user', message);
+            userInput.value = '';
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message assistant';
+            typingIndicator.id = 'typing-indicator';
+            typingIndicator.innerHTML = `
+                <i class="fas fa-robot message-icon"></i>
+                <div class="typing-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </div>
+            `;
+            chatContainer.appendChild(typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Remove typing indicator
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+                
+                addMessage('assistant', data.answer || 'Sorry, I couldn\'t find an answer to that question.');
+            })
+            .catch(() => {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+                
+                addMessage('assistant', 'Sorry, there was an error processing your request.');
+            })
+            .finally(() => {
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+            });
+        }
+
+        function addMessage(sender, text) {
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}`;
+            
+            const icon = sender === 'user' 
+                ? '<i class="fas fa-user message-icon"></i>' 
+                : '<i class="fas fa-robot message-icon"></i>';
+            
+            msg.innerHTML = `
+                ${icon}
+                <div>${text}</div>
+            `;
+            
+            chatContainer.appendChild(msg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

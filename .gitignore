@@ -1,0 +1,8 @@
+# Ignore sensitive files
+config.py
+
+# Ignore Python cache
+__pycache__/
+
+# Ignore virtual environment
+../.venv/

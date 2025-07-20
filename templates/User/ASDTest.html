@@ -1,0 +1,746 @@
+{% extends 'base.html' %}
+{% block title %}Medical Chatbot - ASD Project{% endblock %}
+{% block head %}
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autism Spectrum Screening Tool</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .gradient-header {
+            background: linear-gradient(135deg, #2345e1 0%, #f900fc 100%);
+        }
+
+        .question-card {
+            transition: all 0.2s ease;
+            background-color: #f0f4ff;
+        }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .asd-detected {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            color: white;
+        }
+
+        .no-asd {
+            background: linear-gradient(135deg, #48bb78 0%, #68d391 100%);
+            color: white;
+        }
+
+        .progress-bar {
+            height: 24px;
+            border-radius: 12px;
+            transition: width 1s ease-in-out;
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+<div class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-header text-white shadow-lg ">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-center items-center">
+                <div class="mb-6 md:mb-0 text-center md:text-left">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2">
+                        <i class="fas fa-brain mr-2"></i>Autism Spectrum Screening
+                    </h1>
+                    <p class="text-blue-100 opacity-90">An advanced AI-powered assessment tool</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Form Section -->
+        <div id="formSection" class="bg-white rounded-xl shadow-md overflow-hidden mb-12">
+            <div class="gradient-header p-6">
+                <h2 class="text-2xl font-bold text-white">
+                    <i class="fas fa-clipboard-list mr-2"></i>Screening Questionnaire
+                </h2>
+            </div>
+
+            <form id="predictionForm" class="p-6">
+                <!-- Personal Information -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-blue-900 mb-4 border-b-2 border-primary-200 pb-2 flex items-center">
+                        <i class="fas fa-user-circle mr-2 text-blue"></i>Personal Information
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                        </div>
+
+                        <div>
+                            <label for="age" class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                            <input type="number" id="age" name="age" min="1" max="100" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="gender" value="m" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Male</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="gender" value="f" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Female</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="ethnicity" class="block text-sm font-medium text-gray-700 mb-1">Ethnicity</label>
+                            <select id="ethnicity" name="ethnicity" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                                <option value="ethnicity_Black">Black</option>
+                                <option value="ethnicity_Hispanic">Hispanic</option>
+                                <option value="ethnicity_Latino">Latino</option>
+                                <option value="ethnicity_Middle Eastern ">Middle Eastern</option>
+                                <option value="ethnicity_Others">Others</option>
+                                <option value="ethnicity_Pasifika">Pasifika</option>
+                                <option value="ethnicity_South Asian">South Asian</option>
+                                <option value="ethnicity_Turkish">Turkish</option>
+                                <option value="ethnicity_White-European">White-European</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Background Information -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-blue-900 mb-4 border-b-2 border-primary-200 pb-2 flex items-center">
+                        <i class="fas fa-history mr-2 text-primary-600"></i>Background Information
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="country_of_res" class="block text-sm font-medium text-gray-700 mb-1">Country of Residence</label>
+                            <select id="country_of_res" name="country_of_res" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                                 <option value="country_of_res_AmericanSamoa">American Samoa</option>
+                            <option value="country_of_res_Angola">Angola</option>
+                            <option value="country_of_res_Argentina">Argentina</option>
+                            <option value="country_of_res_Armenia">Armenia</option>
+                            <option value="country_of_res_Aruba">Aruba</option>
+                            <option value="country_of_res_Australia">Australia</option>
+                            <option value="country_of_res_Austria">Austria</option>
+                            <option value="country_of_res_Azerbaijan">Azerbaijan</option>
+                            <option value="country_of_res_Bahamas">Bahamas</option>
+                            <option value="country_of_res_Bangladesh">Bangladesh</option>
+                            <option value="country_of_res_Belgium">Belgium</option>
+                            <option value="country_of_res_Bolivia">Bolivia</option>
+                            <option value="country_of_res_Brazil">Brazil</option>
+                            <option value="country_of_res_Burundi">Burundi</option>
+                            <option value="country_of_res_Canada">Canada</option>
+                            <option value="country_of_res_Chile">Chile</option>
+                            <option value="country_of_res_China">China</option>
+                            <option value="country_of_res_Costa Rica">Costa Rica</option>
+                            <option value="country_of_res_Cyprus">Cyprus</option>
+                            <option value="country_of_res_Czech Republic">Czech Republic</option>
+                            <option value="country_of_res_Ecuador">Ecuador</option>
+                            <option value="country_of_res_Egypt">Egypt</option>
+                            <option value="country_of_res_Ethiopia">Ethiopia</option>
+                            <option value="country_of_res_Finland">Finland</option>
+                            <option value="country_of_res_France">France</option>
+                            <option value="country_of_res_Germany">Germany</option>
+                            <option value="country_of_res_Hong Kong">Hong Kong</option>
+                            <option value="country_of_res_Iceland">Iceland</option>
+                            <option value="country_of_res_India">India</option>
+                            <option value="country_of_res_Indonesia">Indonesia</option>
+                            <option value="country_of_res_Iran">Iran</option>
+                            <option value="country_of_res_Iraq">Iraq</option>
+                            <option value="country_of_res_Ireland">Ireland</option>
+                            <option value="country_of_res_Italy">Italy</option>
+                            <option value="country_of_res_Japan">Japan</option>
+                            <option value="country_of_res_Jordan">Jordan</option>
+                            <option value="country_of_res_Kazakhstan">Kazakhstan</option>
+                            <option value="country_of_res_Lebanon">Lebanon</option>
+                            <option value="country_of_res_Malaysia">Malaysia</option>
+                            <option value="country_of_res_Mexico">Mexico</option>
+                            <option value="country_of_res_Nepal">Nepal</option>
+                            <option value="country_of_res_Netherlands">Netherlands</option>
+                            <option value="country_of_res_New Zealand">New Zealand</option>
+                            <option value="country_of_res_Nicaragua">Nicaragua</option>
+                            <option value="country_of_res_Niger">Niger</option>
+                            <option value="country_of_res_Oman">Oman</option>
+                            <option value="country_of_res_Pakistan">Pakistan</option>
+                            <option value="country_of_res_Philippines">Philippines</option>
+                            <option value="country_of_res_Portugal">Portugal</option>
+                            <option value="country_of_res_Romania">Romania</option>
+                            <option value="country_of_res_Russia">Russia</option>
+                            <option value="country_of_res_Saudi Arabia">Saudi Arabia</option>
+                            <option value="country_of_res_Serbia">Serbia</option>
+                            <option value="country_of_res_Sierra Leone">Sierra Leone</option>
+                            <option value="country_of_res_South Africa">South Africa</option>
+                            <option value="country_of_res_Spain">Spain</option>
+                            <option value="country_of_res_Sri Lanka">Sri Lanka</option>
+                            <option value="country_of_res_Sweden">Sweden</option>
+                            <option value="country_of_res_Tonga">Tonga</option>
+                            <option value="country_of_res_Turkey">Turkey</option>
+                            <option value="country_of_res_Ukraine">Ukraine</option>
+                            <option value="country_of_res_United Arab Emirates">United Arab Emirates</option>
+                            <option value="country_of_res_United Kingdom">United Kingdom</option>
+                            <option value="country_of_res_United States">United States</option>
+                            <option value="country_of_res_Uruguay">Uruguay</option>
+                            <option value="country_of_res_Viet Nam">Viet Nam</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="relation" class="block text-sm font-medium text-gray-700 mb-1">Who is completing this test?</label>
+                            <select id="relation" name="relation" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                                <option value="relation_Parent">Parent</option>
+                                <option value="relation_Relative">Relative</option>
+                                <option value="relation_Self">Self</option>
+                                <option value="relation_Others">Others</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Born with jaundice?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="jaundice" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="jaundice" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Family member with PDD?</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="family_pdd" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="family_pdd" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autism Screening Questions -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-blue-900 mb-4 border-b-2 border-primary-200 pb-2 flex items-center">
+                        <i class="fas fa-question-circle mr-2 text-primary-600"></i>Autism Screening Questions (A1-A10)
+                    </h3>
+                    <p class="text-gray-600 mb-6">Please answer the following questions about behavior and development:</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Question A1 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A1. Does the child look at you when you call his/her name?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A1_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A1_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A2 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A2. How easy is it to get eye contact with the child?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A2_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Easy (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A2_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Difficult (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A3 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A3. Does the child point to indicate that he/she wants something?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A3_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A3_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A4 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A4. Does the child point to share interest with you?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A4_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A4_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A5 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A5. Does the child pretend (e.g., care for dolls, talk on phone)?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A5_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A5_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A6 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A6. Does the child follow where you're looking?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A6_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A6_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A7 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A7. If someone is visibly upset, does the child show signs of wanting to comfort them?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A7_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A7_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A8 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A8. Would you describe the child's first words as:</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A8_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Typical (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A8_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Atypical (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A9 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A9. Does the child use simple gestures (e.g., wave goodbye)?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A9_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A9_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question A10 -->
+                        <div class="question-card p-4 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">A10. Does the child stare at nothing with no apparent purpose?</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A10_Score" value="1" class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">Yes (1)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="A10_Score" value="0" checked class="text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2">No (0)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="px-8 py-3 gradient-header text-white from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-blue font-semibold rounded-lg shadow-lg transition duration-300 transform hover:scale-105 pulse-animation">
+                        <i class="fas fa-chart-line mr-2"></i>Get Screening Results
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section (Initially hidden) -->
+        <div id="resultsSection" class="hidden">
+            <div class="result-card bg-white mb-8">
+                <div class="gradient-header p-6">
+                    <h2 class="text-2xl font-bold text-white">
+                        <i class="fas fa-chart-pie mr-2"></i>Screening Results
+                    </h2>
+                </div>
+
+                <div class="p-6">
+                    <!-- Final Prediction -->
+                    <div id="finalResultBox" class="mb-8 rounded-xl p-6 text-center shadow-inner">
+                        <div class="flex justify-center mb-4">
+                            <div id="resultIcon" class="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
+                                <i id="resultIconSymbol" class="fas fa-question text-3xl"></i>
+                            </div>
+                        </div>
+                        <h3 id="resultTitle" class="text-2xl font-bold mb-2">Assessment Result</h3>
+                        <p id="resultDescription" class="text-lg mb-4">Complete the form to get results</p>
+                        <div class="w-full bg-gray-200 rounded-full h-6 mb-4 mx-auto max-w-md">
+                            <div id="finalProbaBar" class="h-6 rounded-full progress-bar" style="width: 0%"></div>
+                        </div>
+                        <p id="finalProbaText" class="text-gray-600">Probability: 0%</p>
+                    </div>
+
+                    <!-- Model Breakdown -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-primary-700 mb-4 border-b-2 border-primary-200 pb-2 flex items-center">
+                            <i class="fas fa-microscope mr-2 text-primary-600"></i>Model Analysis
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- MLP Model -->
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-semibold text-blue-800 mb-2 flex items-center">
+                                    <i class="fas fa-network-wired mr-2"></i>Neural Network
+                                </h4>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm">Prediction:</span>
+                                    <span id="mlpPred" class="font-semibold">-</span>
+                                </div>
+                                <div class="w-full bg-blue-100 rounded-full h-2.5 mb-2">
+                                    <div id="mlpProbaBar" class="h-2.5 rounded-full bg-blue-500" style="width: 0%"></div>
+                                </div>
+                                <p class="text-xs text-blue-700" id="mlpProbaText">Probability: 0%</p>
+                            </div>
+
+                            <!-- Random Forest -->
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h4 class="font-semibold text-purple-800 mb-2 flex items-center">
+                                    <i class="fas fa-tree mr-2"></i>Random Forest
+                                </h4>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm">Prediction:</span>
+                                    <span id="rfPred" class="font-semibold">-</span>
+                                </div>
+                                <div class="w-full bg-purple-100 rounded-full h-2.5 mb-2">
+                                    <div id="rfProbaBar" class="h-2.5 rounded-full bg-purple-500" style="width: 0%"></div>
+                                </div>
+                                <p class="text-xs text-purple-700" id="rfProbaText">Probability: 0%</p>
+                            </div>
+
+                            <!-- Combined -->
+                            <div class="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                                <h4 class="font-semibold text-pink-800 mb-2 flex items-center">
+                                    <i class="fas fa-balance-scale mr-2"></i>Combined Result
+                                </h4>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm">Weighted Average:</span>
+                                    <span id="combinedPred" class="font-semibold">-</span>
+                                </div>
+                                <div class="w-full bg-pink-100 rounded-full h-2.5 mb-2">
+                                    <div id="combinedProbaBar" class="h-2.5 rounded-full bg-pink-500" style="width: 0%"></div>
+                                </div>
+                                <p class="text-xs text-pink-700" id="combinedProbaText">Probability: 0%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LIME Explanation -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold text-primary-700 mb-4 border-b-2 border-primary-200 pb-2 flex items-center">
+                            <i class="fas fa-search mr-2 text-primary-600"></i>Key Influencing Factors
+                        </h3>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <canvas id="limeChart" class="w-full"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Report -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-primary-700 mb-4 border-b-2 border-primary-200 pb-2 flex items-center">
+                            <i class="fas fa-file-alt mr-2 text-primary-600"></i>Detailed Report
+                        </h3>
+                        <div id="summary-box" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <p class="text-gray-600 text-center">Complete the screening questionnaire to generate a detailed report.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="bg-pink-100 border-l-4 border-pink-500 text-pink-700 p-4 rounded-lg mb-8">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-xl mt-1 mr-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-1">Important Note</h4>
+                        <p class="text-sm">This screening tool is not a diagnostic instrument. It provides an indication of potential autism spectrum characteristics. A formal diagnosis can only be made by a qualified healthcare professional through comprehensive evaluation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('predictionForm');
+            const resultsSection = document.getElementById('resultsSection');
+            const formSection = document.getElementById('formSection');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing Responses...';
+
+                // Get form data
+                const formData = new FormData(form);
+
+                // Send to server
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Get Screening Results';
+
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+
+                    // Show results
+                    displayResults(data);
+                })
+                .catch(error => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Get Screening Results';
+                    showError('An error occurred: ' + error.message);
+                });
+            });
+
+            function showError(message) {
+                alert('Error: ' + message);
+            }
+
+            function displayResults(data) {
+                // Show results section
+                resultsSection.classList.remove('hidden');
+
+                // Scroll to results
+                setTimeout(() => {
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+
+                // Final prediction
+                const finalPred = data.final_pred;
+                const finalResultBox = document.getElementById('finalResultBox');
+                const resultIcon = document.getElementById('resultIcon');
+                const resultIconSymbol = document.getElementById('resultIconSymbol');
+                const resultTitle = document.getElementById('resultTitle');
+                const resultDescription = document.getElementById('resultDescription');
+                const finalProbaBar = document.getElementById('finalProbaBar');
+                const finalProbaText = document.getElementById('finalProbaText');
+
+                // Calculate final probability (weighted average)
+                const finalProba = data.final_proba;
+
+                if (finalPred === 1) {
+                    // ASD Detected - Red theme
+                    finalResultBox.className = 'mb-8 rounded-xl p-6 text-center shadow-inner asd-detected';
+                    resultIcon.className = 'w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg';
+                    resultIconSymbol.className = 'fas fa-exclamation-triangle text-3xl text-red-500';
+                    resultTitle.textContent = 'ASD Characteristics Detected';
+                    resultDescription.textContent = 'The screening suggests higher likelihood of autism spectrum characteristics';
+                    finalProbaBar.className = 'h-6 rounded-full progress-bar bg-red-500';
+                } else {
+                    // No ASD - Green theme
+                    finalResultBox.className = 'mb-8 rounded-xl p-6 text-center shadow-inner no-asd';
+                    resultIcon.className = 'w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg';
+                    resultIconSymbol.className = 'fas fa-check-circle text-3xl text-green-500';
+                    resultTitle.textContent = 'No ASD Characteristics Detected';
+                    resultDescription.textContent = 'The screening suggests lower likelihood of autism spectrum characteristics';
+                    finalProbaBar.className = 'h-6 rounded-full progress-bar bg-green-500';
+                }
+
+                finalProbaBar.style.width = `${finalProba * 100}%`;
+                finalProbaText.textContent = `Probability: ${(finalProba * 100).toFixed(1)}%`;
+
+                // Individual model results
+                document.getElementById('mlpPred').textContent = data.mlp_pred === 1 ? 'Higher Risk' : 'Lower Risk';
+                document.getElementById('rfPred').textContent = data.rf_pred === 1 ? 'Higher Risk' : 'Lower Risk';
+                document.getElementById('combinedPred').textContent = finalPred === 1 ? 'Higher Risk' : 'Lower Risk';
+
+                // MLP
+                const mlpProba = data.mlp_proba[1];
+                const mlpProbaBar = document.getElementById('mlpProbaBar');
+                mlpProbaBar.style.width = `${mlpProba * 100}%`;
+                document.getElementById('mlpProbaText').textContent = `Probability: ${(mlpProba * 100).toFixed(1)}%`;
+
+                // Random Forest
+                const rfProba = data.rf_proba[1];
+                const rfProbaBar = document.getElementById('rfProbaBar');
+                rfProbaBar.style.width = `${rfProba * 100}%`;
+                document.getElementById('rfProbaText').textContent = `Probability: ${(rfProba * 100).toFixed(1)}%`;
+
+                // Combined
+                const combinedProbaBar = document.getElementById('combinedProbaBar');
+                combinedProbaBar.style.width = `${finalProba * 100}%`;
+                document.getElementById('combinedProbaText').textContent = `Probability: ${(finalProba * 100).toFixed(1)}%`;
+
+                // LIME explanation
+                const limeExplanation = data.lime;
+
+                if (limeExplanation && limeExplanation.length > 0) {
+                    const features = limeExplanation.map(item => item.feature);
+                    const weights = limeExplanation.map(item => item.weight);
+
+                    const ctx = document.getElementById('limeChart').getContext('2d');
+
+                    // Destroy previous chart if exists
+                    if (window.limeChart && typeof window.limeChart.destroy === 'function') {
+                        window.limeChart.destroy();
+                    }
+
+                    window.limeChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: features,
+                            datasets: [{
+                                label: 'Feature Influence',
+                                data: weights,
+                                backgroundColor: '#8b5cf6',
+                                borderColor: '#7c3aed',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.parsed.x > 0 ? 'Increases' : 'Decreases'} risk by ${Math.abs(context.parsed.x).toFixed(3)}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Influence on Prediction'
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        autoSkip: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Display summary if available
+                if (data.summary) {
+                    document.getElementById('summary-box').innerHTML = `
+                        <h4 class="font-semibold text-lg mb-3">Detailed Analysis</h4>
+                        <div class="prose max-w-none">${data.summary}</div>
+                    `;
+                }
+            }
+        });
+    </script>
+</div>
+{% endblock %}

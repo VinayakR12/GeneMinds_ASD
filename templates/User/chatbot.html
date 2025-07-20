@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Medical Chatbot - ASD Project{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto p-8 mt-10 bg-white rounded-3xl shadow-2xl border-t-8 border-indigo-600 mb-10">
+  <h2 class="text-3xl font-extrabold text-center mb-6 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+    🩺 ASD Medical Assistant
+  </h2>
+
+  <div id="chatArea" class="flex flex-col space-y-3 p-4 h-96 overflow-y-auto bg-indigo-50 rounded-xl border border-indigo-200 shadow-inner mb-4">
+
+  </div>
+
+  <div class="flex space-x-2 items-center mb-6">
+    <input
+      type="text"
+      id="userInput"
+      placeholder="Ask your medical question..."
+      class="flex-1 p-3 rounded-xl border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+      onkeypress="handleKeyPress(event)"
+    >
+    <button
+      id="sendButton"
+      onclick="sendMessage()"
+      class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 hover:opacity-90 text-white font-semibold text-lg transition"
+    >
+      Send
+    </button>
+    <button
+      id="stopSpeakingButton"
+      onclick="stopSpeaking()"
+      class="px-4 py-3 hidden rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-lg transition"
+    >
+      ✖️ Stop
+    </button>
+  </div>
+
+  <div id="loader" class="flex justify-center items-center mt-4 hidden">
+    <div class="loader"></div>
+  </div>
+</div>
+
+<!-- Styling -->
+<style>
+  .loader {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #8b5cf6;
+    border-right: 6px solid #ec4899;
+    border-bottom: 6px solid #6366f1;
+    border-left: 6px solid #8b5cf6;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+  .user-message {
+    align-self: flex-end;
+    background: linear-gradient(to right, #6366f1, #ec4899);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 20px 20px 0 20px;
+    max-width: 70%;
+    word-wrap: break-word;
+  }
+  .bot-message {
+    align-self: flex-start;
+    background-color: #e0e7ff;
+    color: #4338ca;
+    padding: 10px 16px 36px 16px;
+    border-radius: 20px 20px 20px 0;
+    max-width: 70%;
+    word-wrap: break-word;
+    position: relative;
+  }
+  .read-aloud {
+    position: absolute;
+    bottom: 6px;
+    right: 10px;
+    font-size: 22px;
+    color: #6366f1;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+  }
+  .read-aloud:hover {
+    color: #7c3aed;
+    transform: scale(1.2);
+  }
+</style>
+
+<script>
+  let currentUtterance = null;
+
+  function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function cleanResponse(text) {
+    return text.replace(/\*/g, ' ');
+  }
+
+  function speakText(text) {
+    stopSpeaking();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    currentUtterance = utterance;
+    speechSynthesis.speak(utterance);
+    document.getElementById('stopSpeakingButton').classList.remove('hidden');
+
+    utterance.onend = () => {
+      document.getElementById('stopSpeakingButton').classList.add('hidden');
+    };
+  }
+
+  function stopSpeaking() {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+      document.getElementById('stopSpeakingButton').classList.add('hidden');
+    }
+  }
+
+  window.addEventListener('beforeunload', stopSpeaking);
+
+  function createBubble(content, type = 'bot') {
+    const bubble = document.createElement('div');
+    bubble.className = type === 'user' ? 'user-message' : 'bot-message';
+    bubble.innerHTML = content;
+
+    if (type === 'bot') {
+      const readButton = document.createElement('div');
+      readButton.className = 'read-aloud';
+      readButton.innerHTML = '🔊';
+      readButton.title = "Read Aloud";
+      readButton.onclick = () => speakText(content.replace(/<\/?[^>]+(>|$)/g, "")); // Clean HTML
+      bubble.appendChild(readButton);
+    }
+
+    return bubble;
+  }
+
+  async function sendMessage() {
+    const userInput = document.getElementById("userInput");
+    const chatArea = document.getElementById("chatArea");
+    const loader = document.getElementById("loader");
+
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    chatArea.appendChild(createBubble(message, 'user'));
+    chatArea.scrollTop = chatArea.scrollHeight;
+    userInput.value = "";
+
+    loader.classList.remove('hidden');
+
+    try {
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const data = await response.json();
+
+      const cleanedResponse = cleanResponse(data.response);
+      chatArea.appendChild(createBubble(cleanedResponse, 'bot'));
+    } catch (error) {
+      console.error(error);
+      chatArea.appendChild(createBubble('⚠️ An error occurred. Please try again.', 'bot'));
+    } finally {
+      loader.classList.add('hidden');
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+  }
+</script>
+{% endblock %}

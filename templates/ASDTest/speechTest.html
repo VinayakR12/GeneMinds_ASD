@@ -1,0 +1,185 @@
+{% extends "screenTest.html" %}
+
+
+{% block content1 %}
+<div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 text-gray-800 font-sans">
+
+  <div class="max-w-2xl mx-auto px-6 py-10">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 via-pink-600 to-blue-600">
+        🧠 ASD Speech Test
+      </h1>
+      <p class="text-md text-gray-600 mt-2">An interactive speech repetition assessment</p>
+    </div>
+
+    <!-- Instructions Section -->
+    <div id="instructionBox" class="bg-white shadow-xl rounded-xl p-6 space-y-4">
+      <h2 class="text-2xl font-bold text-purple-700">📘 Instructions</h2>
+      <ul class="list-disc pl-5 text-gray-700 space-y-1">
+        <li>There are 4 speech tasks.</li>
+        <li>First 2: Read and repeat the shown sentence.</li>
+        <li>Next 2: Listen and repeat the spoken sentence (3 listens allowed).</li>
+        <li>Each correct answer gives you 5 points. Total: 20 points.</li>
+      </ul>
+      <div class="text-center pt-4">
+        <button onclick="startTest()" class="px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold shadow-md hover:scale-105 transition">
+          <i class="fas fa-play-circle mr-2"></i> Start Test
+        </button>
+      </div>
+    </div>
+
+    <!-- Test Interface -->
+    <div id="testArea" class="hidden bg-white shadow-xl rounded-xl mt-8 p-6 space-y-6">
+      <div class="flex justify-between items-center">
+        <p class="text-indigo-600 font-semibold">Question <span id="questionNumber">1</span> of 4</p>
+        <p id="remainingInfo" class="text-red-600 font-medium hidden">Remaining Listens: <span id="remainingAttempts">3</span></p>
+      </div>
+
+      <div id="sentenceDisplay" class="text-xl font-semibold text-center text-purple-800 min-h-[40px]"></div>
+
+      <!-- Controls -->
+      <div id="listenControls" class="hidden flex justify-center">
+        <button onclick="playSentence()" class="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold shadow hover:scale-105 transition">
+          <i class="fas fa-volume-up mr-2"></i>Play Sentence
+        </button>
+      </div>
+
+      <div class="flex justify-center">
+        <button onclick="startSpeaking()" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full font-bold shadow-md hover:scale-105 transition">
+          <i class="fas fa-microphone mr-2"></i>Speak Now
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full h-2 bg-gray-200 rounded">
+        <div id="timerBar" class="h-2 bg-purple-600 rounded transition-all duration-1000" style="width: 0%;"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div id="feedback" class="text-center text-sm font-semibold mt-2 min-h-[24px]"></div>
+    </div>
+
+
+  <script>
+    const allSentences = [
+      "I love to play outside.",
+      "My name is Sam.",
+      "We are going to the park.",
+      "Can you help me please?",
+      "Look at the blue sky.",
+      "The dog is very happy.",
+      "I like chocolate ice cream.",
+      "Where is my toy?",
+      "This book is interesting.",
+      "I see a big red car."
+    ];
+
+    let testSentences = [], currentQ = 0, score = 0, remainingListen = 3;
+
+    function getRandomSentences() {
+      const copy = [...allSentences];
+      while (testSentences.length < 4) {
+        const i = Math.floor(Math.random() * copy.length);
+        testSentences.push(copy.splice(i, 1)[0]);
+      }
+    }
+
+    function startTest() {
+      document.getElementById('instructionBox').classList.add('hidden');
+      document.getElementById('testArea').classList.remove('hidden');
+      getRandomSentences();
+      showNextQuestion();
+    }
+
+    function showNextQuestion() {
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = '';
+      if (currentQ >= 4) {
+        document.getElementById('testArea').classList.add('hidden');
+        document.getElementById('resultBox').classList.remove('hidden');
+        document.getElementById('finalScore').textContent = score;
+
+        function submitSpeechScore(score) {
+    fetch('/speechTest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score: score })  // Replace score with actual score variable
+    }).then(() => {
+      window.location.href = '/result';
+    });
+  }
+
+submitSpeechScore()
+        return;
+      }
+
+      document.getElementById('questionNumber').textContent = currentQ + 1;
+      const sentence = testSentences[currentQ];
+
+      if (currentQ < 2) {
+        document.getElementById('sentenceDisplay').textContent = sentence;
+        document.getElementById('listenControls').classList.add('hidden');
+        document.getElementById('remainingInfo').classList.add('hidden');
+      } else {
+        document.getElementById('sentenceDisplay').textContent = '';
+        remainingListen = 3;
+        document.getElementById('remainingAttempts').textContent = remainingListen;
+        document.getElementById('listenControls').classList.remove('hidden');
+        document.getElementById('remainingInfo').classList.remove('hidden');
+      }
+    }
+
+    function playSentence() {
+      if (remainingListen <= 0) {
+        document.getElementById('feedback').textContent = "❌ No listens left.";
+        document.getElementById('feedback').className = "text-red-600 font-medium";
+        return;
+      }
+      const sentence = testSentences[currentQ];
+      const synth = window.speechSynthesis;
+      const utter = new SpeechSynthesisUtterance(sentence);
+      utter.lang = 'en-US';
+      synth.speak(utter);
+      remainingListen--;
+      document.getElementById('remainingAttempts').textContent = remainingListen;
+    }
+
+    function startSpeaking() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      document.getElementById('timerBar').style.width = '0%';
+      let width = 0;
+      const interval = setInterval(() => {
+        width += 10;
+        document.getElementById('timerBar').style.width = width + '%';
+        if (width >= 100) clearInterval(interval);
+      }, 300);
+
+      recognition.start();
+      recognition.onresult = function (event) {
+        const userSpeech = event.results[0][0].transcript.toLowerCase().trim();
+        const actual = testSentences[currentQ].toLowerCase().trim();
+        if (userSpeech === actual) {
+          score += 5;
+          document.getElementById('feedback').textContent = "✅ Great job!";
+          document.getElementById('feedback').className = "text-green-600 font-bold";
+        } else {
+          document.getElementById('feedback').textContent = "❌ You said: " + userSpeech;
+          document.getElementById('feedback').className = "text-red-600 font-medium";
+        }
+
+        currentQ++;
+        setTimeout(showNextQuestion, 1500);
+      };
+
+      recognition.onerror = function () {
+        document.getElementById('feedback').textContent = "❗Error recognizing your voice. Try again.";
+        document.getElementById('feedback').className = "text-red-600 font-medium";
+      };
+    }
+  </script>
+</div>
+{% endblock %}
