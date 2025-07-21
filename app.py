@@ -1,6 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 from chatbot import get_gemini_response
 from utils.geneReport import genereport_bp
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
 
 app.register_blueprint(genereport_bp)
@@ -147,5 +152,11 @@ def researchChatbot():
 def page_not_found(e):
     return redirect(url_for('home'))
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+
+import os
+
+port = int(os.environ.get("PORT"))
+app.run(host='0.0.0.0', port=port, debug=True)
