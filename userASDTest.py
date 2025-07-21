@@ -55,7 +55,7 @@ def generate_lime_explanation(input_df):
 import cohere
 import config
 
-co = config.ASDCOAPI
+co = cohere.Client(config.ASDCOAPI)
 
 def build_prompt(data):
     score = sum([int(data.get(f'A{i}_Score', 0)) for i in range(1, 11)])

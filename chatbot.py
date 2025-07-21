@@ -1,7 +1,8 @@
 import requests
-import os
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_API_URL = os.getenv("GEMINI_URL")
+import config
+
+GEMINI_API_KEY = config.GEMINI_API_KEY1
+GEMINI_API_URL = config.GEMINI_URL1
 
 def get_gemini_response(prompt):
     headers = {
